@@ -112,7 +112,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentTrack, setCurrentTrack] = useState<Track | null>(() => {
     try {
       const saved = localStorage.getItem('muzac_current_track');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      return (parsed && parsed.id) ? parsed : null;
     } catch {
       return null;
     }
@@ -136,7 +138,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [queue, setQueue] = useState<Track[]>(() => {
     try {
       const saved = localStorage.getItem('muzac_queue');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter((t: any) => t && t.id) : [];
     } catch {
       return [];
     }
@@ -180,7 +184,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [likedTracks, setLikedTracks] = useState<Track[]>(() => {
     try {
       const saved = localStorage.getItem('muzac_liked');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter((t: any) => t && t.id) : [];
     } catch {
       return [];
     }
@@ -189,7 +195,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [downloadedTracks, setDownloadedTracks] = useState<Track[]>(() => {
     try {
       const saved = localStorage.getItem('muzac_downloads');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter((t: any) => t && t.id) : [];
     } catch {
       return [];
     }
@@ -211,7 +219,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [history, setHistory] = useState<Track[]>(() => {
     try {
       const saved = localStorage.getItem('muzac_history');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter((t: any) => t && t.id) : [];
     } catch {
       return [];
     }
@@ -270,6 +280,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const sleepTimerInterval = useRef<any>(null);
   const hasLookaheadTriggered = useRef<boolean>(false);
   const retryCountRef = useRef<number>(0);
+  const consecutiveErrorsRef = useRef<number>(0);
+  const lastErrorTimeRef = useRef<number>(0);
 
   // Docking position for in-page Video mode
   const [videoDockRect, setVideoDockRect] = useState<DOMRect | null>(null);
@@ -313,6 +325,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [isShuffle, queue.length]);
 
   const promptAddToPlaylist = (track: Track) => {
+    if (!track || !track.id) return;
     setSelectedTrackForPlaylist(track);
     setIsAddToPlaylistOpen(true);
   };
@@ -464,6 +477,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             setIsPlaying(true);
             setDuration(event.target.getDuration() || 0);
             retryCountRef.current = 0; // reset retry count on successful playback
+            consecutiveErrorsRef.current = 0; // reset error circuit breaker
           } else if (event.data === 2) {
             setIsPlaying(false);
           } else if (event.data === 0) {
@@ -482,8 +496,28 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const handlePlaybackError = async (errorCode: number) => {
     if (!currentTrack) return;
 
-    console.warn(`[Muzac Auto-Heal] Handling playback error ${errorCode} for: "${currentTrack.title}"`);
+    const now = Date.now();
+    if (now - lastErrorTimeRef.current < 8000) {
+      consecutiveErrorsRef.current += 1;
+    } else {
+      consecutiveErrorsRef.current = 1;
+    }
+    lastErrorTimeRef.current = now;
+
+    console.warn(`[Muzac Auto-Heal] Handling playback error ${errorCode} (Consecutive: ${consecutiveErrorsRef.current}) for: "${currentTrack.title}"`);
     
+    // Circuit breaker: Prevent infinite skipping crash loop if media is blocked or browser is suspending
+    if (consecutiveErrorsRef.current >= 3) {
+      console.warn('[Muzac Circuit Breaker] Multiple playback errors encountered. Halting automatic skip loop.');
+      setIsPlaying(false);
+      if (ytPlayerRef.current?.pauseVideo) {
+        try { ytPlayerRef.current.pauseVideo(); } catch {}
+      }
+      setPlaybackStatusMessage('Playback paused due to network or stream restrictions. Tap play to retry.');
+      setTimeout(() => setPlaybackStatusMessage(null), 5000);
+      return;
+    }
+
     // Attempt 1: Try resolving an official audio alternate upload
     if (retryCountRef.current === 0) {
       retryCountRef.current += 1;
@@ -626,8 +660,14 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Play a specific track
   const playTrack = (track: Track, newQueue?: Track[]) => {
+    if (!track || !track.id) {
+      console.warn('[Muzac] Cannot play invalid or undefined track');
+      return;
+    }
+
     hasLookaheadTriggered.current = false;
     retryCountRef.current = 0;
+    consecutiveErrorsRef.current = 0;
     setCurrentTrack(track);
     setCurrentTime(0);
 
@@ -862,6 +902,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Like / Favorite system
   const toggleLike = (track: Track) => {
+    if (!track || !track.id) return;
     setLikedTracks(prev => {
       const exists = prev.some(t => t.id === track.id);
       let updated: Track[];
@@ -875,7 +916,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
-  const isLiked = (trackId: string) => likedTracks.some(t => t.id === trackId);
+  const isLiked = (trackId?: string) => {
+    if (!trackId) return false;
+    return likedTracks.some(t => t.id === trackId);
+  };
 
   // Playlists
   const createPlaylist = (title: string, description: string = '') => {
@@ -998,6 +1042,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const downloadTrack = async (track: Track) => {
+    if (!track || !track.id) return;
     try {
       setDownloadingTrackId(track.id);
       setDownloadToast(`Downloading "${track.title}" in Master Audio...`);
@@ -1124,18 +1169,20 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         playbackStatusMessage
       }}
     >
-      {/* Container for YouTube Player: Offscreen for background audio streaming; docks cleanly into VideoPlayerView when in video mode */}
+      {/* Container for YouTube Player: Kept in-viewport with 0.01 opacity in audio mode to prevent iOS Safari & Android WebKit from suspending background audio playback; docks cleanly into VideoPlayerView when in video mode */}
       <div 
         ref={ytContainerRef}
         style={{
           position: 'fixed',
-          top: isVideoMode && currentTrack && videoDockRect ? `${videoDockRect.top}px` : '-9999px',
-          left: isVideoMode && currentTrack && videoDockRect ? `${videoDockRect.left}px` : '-9999px',
-          width: isVideoMode && currentTrack && videoDockRect ? `${videoDockRect.width}px` : '1px',
-          height: isVideoMode && currentTrack && videoDockRect ? `${videoDockRect.height}px` : '1px',
+          top: isVideoMode && currentTrack && videoDockRect ? `${videoDockRect.top}px` : 'auto',
+          left: isVideoMode && currentTrack && videoDockRect ? `${videoDockRect.left}px` : 'auto',
+          bottom: isVideoMode && currentTrack && videoDockRect ? 'auto' : '0px',
+          right: isVideoMode && currentTrack && videoDockRect ? 'auto' : '0px',
+          width: isVideoMode && currentTrack && videoDockRect ? `${videoDockRect.width}px` : '240px',
+          height: isVideoMode && currentTrack && videoDockRect ? `${videoDockRect.height}px` : '180px',
           pointerEvents: isVideoMode && currentTrack && videoDockRect ? 'auto' : 'none',
-          zIndex: isVideoMode && currentTrack && videoDockRect ? 15 : -10,
-          opacity: isVideoMode && currentTrack && videoDockRect ? 1 : 0.001,
+          zIndex: isVideoMode && currentTrack && videoDockRect ? 15 : -1,
+          opacity: isVideoMode && currentTrack && videoDockRect ? 1 : 0.01,
           borderRadius: isVideoMode && currentTrack && videoDockRect ? '1.5rem' : '0px',
           overflow: 'hidden',
           transition: 'opacity 0.2s ease-in-out'

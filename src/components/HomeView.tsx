@@ -148,7 +148,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             )}
             <button
-              onClick={() => playTrack(searchResults[0], searchResults)}
+              onClick={() => searchResults[0] && playTrack(searchResults[0], searchResults)}
               className="px-5 py-2.5 rounded-2xl clay-btn-white font-extrabold text-xs flex items-center gap-2 shadow-lg hover:scale-105 transition"
             >
               <Play className="w-4 h-4 fill-current ml-0.5" />

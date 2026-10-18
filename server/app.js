@@ -24,13 +24,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const apiRouter = express.Router();
+
 // Health check
-app.get('/api/health', (req, res) => {
+apiRouter.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Muzac Backend is online', platform: process.env.VERCEL ? 'vercel-serverless' : 'node-local' });
 });
 
 // Home feed: Featured tracks, Curated Spotify playlists, Moods & Genres
-app.get('/api/home', (req, res) => {
+apiRouter.get('/home', (req, res) => {
   res.json({
     featuredTracks: FEATURED_TRENDING_TRACKS,
     curatedPlaylists: CURATED_SPOTIFY_PLAYLISTS,
@@ -39,7 +41,7 @@ app.get('/api/home', (req, res) => {
 });
 
 // Search tracks, artists, videos, and podcasts
-app.get('/api/search', async (req, res) => {
+apiRouter.get('/search', async (req, res) => {
   try {
     const { q, type } = req.query;
     if (!q) {
@@ -54,7 +56,7 @@ app.get('/api/search', async (req, res) => {
 });
 
 // Autoplay / Radio Queue with YTM Tuner modes
-app.get('/api/radio', async (req, res) => {
+apiRouter.get('/radio', async (req, res) => {
   try {
     const { id, title, artist, mode } = req.query;
     if (!id) {
@@ -69,7 +71,7 @@ app.get('/api/radio', async (req, res) => {
 });
 
 // Artist Profile (Top songs, Discography, Music Videos, Related Artists)
-app.get('/api/artist/:name', async (req, res) => {
+apiRouter.get('/artist/:name', async (req, res) => {
   try {
     const artist = await getArtistProfile(req.params.name);
     if (artist) {
@@ -83,12 +85,12 @@ app.get('/api/artist/:name', async (req, res) => {
 });
 
 // Apple Music City Charts (Top 100 Tokyo, NY, London, Paris, Seoul, LA, etc.)
-app.get('/api/city-charts', (req, res) => {
+apiRouter.get('/city-charts', (req, res) => {
   res.json({ charts: CITY_CHARTS });
 });
 
 // Trending Music Videos Hub (4K / 1080p Ultra HD)
-app.get('/api/videos/trending', async (req, res) => {
+apiRouter.get('/videos/trending', async (req, res) => {
   try {
     const { genre } = req.query;
     const videos = await getTrendingVideos(genre || 'all');
@@ -100,7 +102,7 @@ app.get('/api/videos/trending', async (req, res) => {
 });
 
 // Lyrics: Time-synced & Plain
-app.get('/api/lyrics', async (req, res) => {
+apiRouter.get('/lyrics', async (req, res) => {
   try {
     const { title, artist, duration } = req.query;
     const lyricsData = await getLyrics(title, artist, duration ? parseFloat(duration) : undefined);
@@ -112,7 +114,7 @@ app.get('/api/lyrics', async (req, res) => {
 });
 
 // Spotify Import / Details
-app.post('/api/spotify/import', async (req, res) => {
+apiRouter.post('/spotify/import', async (req, res) => {
   try {
     const { url } = req.body;
     if (!url) {
@@ -127,12 +129,12 @@ app.post('/api/spotify/import', async (req, res) => {
 });
 
 // Get Curated Spotify Playlists
-app.get('/api/spotify/featured', (req, res) => {
+apiRouter.get('/spotify/featured', (req, res) => {
   res.json({ playlists: CURATED_SPOTIFY_PLAYLISTS });
 });
 
 // Podcasts Catalog
-app.get('/api/podcasts', (req, res) => {
+apiRouter.get('/podcasts', (req, res) => {
   res.json({
     categories: PODCAST_CATEGORIES,
     podcasts: FEATURED_PODCASTS
@@ -140,7 +142,7 @@ app.get('/api/podcasts', (req, res) => {
 });
 
 // Resolve a Spotify track (Title + Artist) to a playable YouTube track ID
-app.get('/api/resolve-track', async (req, res) => {
+apiRouter.get('/resolve-track', async (req, res) => {
   try {
     const { title, artist } = req.query;
     if (!title) {
@@ -159,7 +161,7 @@ app.get('/api/resolve-track', async (req, res) => {
 });
 
 // Direct In-App Audio Download Endpoint (Zero Redirects!)
-app.get('/api/download/:id', async (req, res) => {
+apiRouter.get('/download/:id', async (req, res) => {
   const { id } = req.params;
   const { title = 'Track', artist = 'Artist' } = req.query;
 
@@ -200,5 +202,9 @@ app.get('/api/download/:id', async (req, res) => {
     }
   });
 });
+
+// Dual mount: handles both /api/* (Vercel & local) and direct /* (some Vercel rewrite versions)
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 export default app;

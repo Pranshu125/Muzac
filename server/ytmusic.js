@@ -2,6 +2,7 @@ import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 
 import { Innertube, UniversalCache } from 'youtubei.js';
+import axios from 'axios';
 
 let ytClient = null;
 let ytClientPromise = null;
@@ -17,8 +18,8 @@ export async function getYtClient() {
       return client;
     }).catch(err => {
       ytClientPromise = null;
-      console.error('Failed to initialize Innertube client:', err.message);
-      throw err;
+      console.warn('Innertube init deferred/fallback mode:', err.message);
+      return null;
     });
   }
   return ytClientPromise;
@@ -41,6 +42,57 @@ export function parseDurationToSeconds(str) {
   return 0;
 }
 
+// Fast direct scraper fallback for cloud/serverless/datacenter environments
+export async function scrapeYouTubeSearch(query, filter = 'all') {
+  try {
+    const qUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&hl=en`;
+    const res = await axios.get(qUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9'
+      },
+      timeout: 5000
+    });
+
+    const match = res.data.match(/ytInitialData\s*=\s*({.+?});<\/script>/);
+    if (!match) return [];
+
+    const data = JSON.parse(match[1]);
+    const contents = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents;
+    const items = contents?.find((c) => c.itemSectionRenderer)?.itemSectionRenderer?.contents || [];
+
+    const scraped = [];
+    for (const item of items) {
+      const v = item.videoRenderer;
+      if (!v || !v.videoId) continue;
+
+      const durationStr = v.lengthText?.simpleText || '';
+      const durationSec = parseDurationToSeconds(durationStr);
+      const thumbnail = v.thumbnail?.thumbnails?.[v.thumbnail.thumbnails.length - 1]?.url || 
+        `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`;
+      const title = v.title?.runs?.[0]?.text || 'Untitled Song';
+      const artist = v.ownerText?.runs?.[0]?.text || 'Unknown Artist';
+
+      scraped.push({
+        id: v.videoId,
+        title,
+        artist,
+        duration: durationSec,
+        durationFormatted: durationStr || formatDuration(durationSec),
+        thumbnail,
+        album: 'Single',
+        views: v.viewCountText?.simpleText || '',
+        published: v.publishedTimeText?.simpleText || '',
+        type: 'song'
+      });
+    }
+    return scraped;
+  } catch (err) {
+    console.warn('[Muzac Scraper Fallback] Scrape error:', err.message);
+    return [];
+  }
+}
+
 // In-memory cache for fast, snappy search responses
 const searchCache = new Map();
 
@@ -55,36 +107,50 @@ export async function searchTracks(query, filter = 'all') {
 
   try {
     const yt = await getYtClient();
-    const search = await yt.search(query, {
-      type: filter === 'video' ? 'video' : 'video'
-    });
+    if (yt) {
+      const search = await yt.search(query, {
+        type: filter === 'video' ? 'video' : 'video'
+      });
 
-    if (search.videos && search.videos.length > 0) {
-      for (const v of search.videos) {
-        if (!v.id) continue;
-        const durationSec = v.duration?.seconds || parseDurationToSeconds(v.duration?.text);
-        
-        const thumbnail = v.thumbnails?.[v.thumbnails.length - 1]?.url || 
-          `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
+      if (search.videos && search.videos.length > 0) {
+        for (const v of search.videos) {
+          if (!v.id) continue;
+          const durationSec = v.duration?.seconds || parseDurationToSeconds(v.duration?.text);
+          
+          const thumbnail = v.thumbnails?.[v.thumbnails.length - 1]?.url || 
+            `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
 
-        const author = v.author?.name || v.channel?.name || 'Unknown Artist';
+          const author = v.author?.name || v.channel?.name || 'Unknown Artist';
 
-        results.push({
-          id: v.id,
-          title: v.title?.text || v.title?.runs?.[0]?.text || 'Untitled Song',
-          artist: author,
-          duration: durationSec,
-          durationFormatted: v.duration?.text || formatDuration(durationSec),
-          thumbnail: thumbnail,
-          album: 'Single',
-          views: v.views?.text || '',
-          published: v.published?.text || '',
-          type: 'song'
-        });
+          results.push({
+            id: v.id,
+            title: v.title?.text || v.title?.runs?.[0]?.text || 'Untitled Song',
+            artist: author,
+            duration: durationSec,
+            durationFormatted: v.duration?.text || formatDuration(durationSec),
+            thumbnail: thumbnail,
+            album: 'Single',
+            views: v.views?.text || '',
+            published: v.published?.text || '',
+            type: 'song'
+          });
+        }
       }
     }
   } catch (err) {
-    console.error('Search error in ytmusic.js:', err.message);
+    console.warn('Innertube search failed, trying scraper fallback:', err.message);
+  }
+
+  // Fast direct scraper fallback if Innertube yielded 0 results
+  if (results.length === 0) {
+    try {
+      const scraped = await scrapeYouTubeSearch(query, filter);
+      if (scraped && scraped.length > 0) {
+        results.push(...scraped);
+      }
+    } catch (scrapeErr) {
+      console.warn('Scraper fallback failed:', scrapeErr.message);
+    }
   }
 
   // Fallback: If YouTube search fails or is throttled, search curated featured library
