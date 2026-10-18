@@ -1,0 +1,303 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { PlayerProvider, usePlayer } from './context/PlayerContext';
+import { LiquidBackground } from './components/LiquidBackground';
+import { Sidebar } from './components/Sidebar';
+import { Header } from './components/Header';
+import { PlayerBar } from './components/PlayerBar';
+import { HomeView } from './components/HomeView';
+import { ExploreView } from './components/ExploreView';
+import { PodcastsView } from './components/PodcastsView';
+import { SpotifyHub } from './components/SpotifyHub';
+import { VideoPlayerView } from './components/VideoPlayerView';
+import { DownloadsView } from './components/DownloadsView';
+import { LocalLibrary } from './components/LocalLibrary';
+import { PlaylistView } from './components/PlaylistView';
+import { LyricsView } from './components/LyricsView';
+import { QueueDrawer } from './components/QueueDrawer';
+import { MobileBottomNav } from './components/MobileBottomNav';
+import { EqualizerModal } from './components/EqualizerModal';
+import { SpotifyImportModal } from './components/SpotifyImportModal';
+import { FullscreenView } from './components/FullscreenView';
+import { MasterTechModal } from './components/MasterTechModal';
+import { DevicePickerModal } from './components/DevicePickerModal';
+import { AddToPlaylistModal } from './components/AddToPlaylistModal';
+import { ArtistView } from './components/ArtistView';
+import { CityChartsView } from './components/CityChartsView';
+import { ReplayView } from './components/ReplayView';
+import type { ViewMode, Track, CategoryFilter } from './types';
+
+const MainLayout: React.FC = () => {
+  const { 
+    primaryColor, 
+    secondaryColor, 
+    isPlaying, 
+    isVideoMode, 
+    setIsVideoMode,
+    selectedArtist, 
+    setSelectedArtist,
+    currentView, 
+    setCurrentView,
+    navigateToArtist
+  } = usePlayer();
+
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<CategoryFilter>('all');
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+  const [isSpotifyImportOpen, setIsSpotifyImportOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<Track[]>([]);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
+
+  const searchAbortController = useRef<AbortController | null>(null);
+  const debounceTimer = useRef<any>(null);
+
+  // Spotify-style Live Debounced Search with AbortController
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+
+    if (!trimmed) {
+      setSearchResults([]);
+      setIsSearching(false);
+      setHasSearched(false);
+      if (searchAbortController.current) {
+        searchAbortController.current.abort();
+      }
+      return;
+    }
+
+    if (trimmed.includes('spotify.com')) {
+      setIsSpotifyImportOpen(true);
+      return;
+    }
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    debounceTimer.current = setTimeout(async () => {
+      if (searchAbortController.current) {
+        searchAbortController.current.abort();
+      }
+
+      const controller = new AbortController();
+      searchAbortController.current = controller;
+
+      setIsSearching(true);
+      setHasSearched(true);
+      if (currentView !== 'home') {
+        setCurrentView('home');
+      }
+
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}&type=song`, {
+          signal: controller.signal
+        });
+        const data = await res.json();
+        if (data.results) {
+          setSearchResults(data.results);
+        }
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('Search error:', err);
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    }, 280);
+
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [searchQuery]);
+
+  // Handle Explicit Search Submission
+  const handleSearchSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    if (searchQuery.includes('spotify.com')) {
+      setIsSpotifyImportOpen(true);
+      return;
+    }
+
+    if (searchAbortController.current) searchAbortController.current.abort();
+    const controller = new AbortController();
+    searchAbortController.current = controller;
+
+    setIsSearching(true);
+    setHasSearched(true);
+    setIsVideoMode(false);
+    setCurrentView('home');
+
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}&type=song`, {
+        signal: controller.signal
+      });
+      const data = await res.json();
+      if (data.results) {
+        setSearchResults(data.results);
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') console.error('Search error:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectView = (view: ViewMode) => {
+    if (view === 'video' || view === 'videos') {
+      setIsVideoMode(true);
+      setCurrentView('video');
+    } else {
+      setIsVideoMode(false);
+      setCurrentView(view);
+    }
+    if (view !== 'home') {
+      setSearchResults([]);
+      setSearchQuery('');
+      setHasSearched(false);
+    }
+  };
+
+  const handleCategoryFilterSelect = (filter: CategoryFilter) => {
+    setSelectedCategoryFilter(filter);
+    if (filter === 'podcasts') {
+      setIsVideoMode(false);
+      setCurrentView('podcasts');
+    } else if (filter === 'videos') {
+      setIsVideoMode(true);
+      setCurrentView('video');
+    } else {
+      setIsVideoMode(false);
+      setCurrentView('home');
+    }
+  };
+
+  const handleSelectPlaylist = (id: string) => {
+    setSelectedPlaylistId(id);
+    setCurrentView('playlist');
+  };
+
+  const handleSelectArtist = (artist: string) => {
+    setSelectedArtist(artist);
+    setCurrentView('artist');
+  };
+
+  return (
+    <div className="relative min-h-screen text-gray-100 flex flex-col font-sans overflow-hidden bg-[#07080c]">
+      {/* Ambient Mesh */}
+      <LiquidBackground
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        isPlaying={isPlaying}
+      />
+
+      {/* Header */}
+      <Header
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
+        selectedCategoryFilter={selectedCategoryFilter}
+        onSelectCategoryFilter={handleCategoryFilterSelect}
+        onOpenSpotifyImport={() => setIsSpotifyImportOpen(true)}
+      />
+
+      {/* Main Container: Sidebar + View Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar */}
+        <Sidebar
+          currentView={currentView}
+          onSelectView={handleSelectView}
+          onOpenSpotifyImport={() => setIsSpotifyImportOpen(true)}
+          onSelectPlaylist={handleSelectPlaylist}
+          selectedPlaylistId={selectedPlaylistId}
+        />
+
+        {/* Dynamic Center Viewport */}
+        <main className="flex-1 overflow-y-auto pb-44 md:pb-28 custom-scrollbar relative z-10">
+          {currentView === 'home' && (
+            <HomeView
+              searchResults={searchResults}
+              isSearching={isSearching}
+              hasSearched={hasSearched}
+              searchQuery={searchQuery}
+              onClearSearch={() => {
+                setSearchQuery('');
+                setSearchResults([]);
+                setHasSearched(false);
+              }}
+              selectedCategoryFilter={selectedCategoryFilter}
+              onSelectView={handleSelectView}
+              onOpenSpotifyImport={() => setIsSpotifyImportOpen(true)}
+              onSelectArtist={handleSelectArtist}
+            />
+          )}
+
+          {currentView === 'explore' && <ExploreView />}
+          {currentView === 'podcasts' && <PodcastsView />}
+          {currentView === 'spotify' && <SpotifyHub />}
+          {currentView === 'video' && <VideoPlayerView onSelectView={handleSelectView} />}
+          {currentView === 'downloads' && <DownloadsView />}
+          {currentView === 'local' && <LocalLibrary />}
+          {currentView === 'city-charts' && <CityChartsView />}
+          {currentView === 'replay' && <ReplayView />}
+          {currentView === 'artist' && (
+            <ArtistView
+              artistName={selectedArtist}
+              onSelectArtist={handleSelectArtist}
+            />
+          )}
+
+          {currentView === 'liked' && <PlaylistView isLikedView />}
+          {currentView === 'playlist' && (
+            <PlaylistView playlistId={selectedPlaylistId} />
+          )}
+        </main>
+      </div>
+
+      {/* Bottom Fixed Dock Player Bar (Desktop + Mobile Mini) */}
+      <PlayerBar onSelectArtist={handleSelectArtist} />
+
+      {/* Mobile Floating Bottom Navigation Dock */}
+      <MobileBottomNav 
+        currentView={currentView}
+        onSelectView={handleSelectView}
+      />
+
+      {/* Slide-out Queue Drawer */}
+      <QueueDrawer />
+
+      {/* Fullscreen Overlay Lyrics & Apple Music Sing Mode */}
+      <LyricsView />
+
+      {/* Cinema Fullscreen View */}
+      <FullscreenView />
+
+      {/* 10-Band DSP Graphic Equalizer Modal */}
+      <EqualizerModal />
+
+      {/* Spotify Import Modal */}
+      <SpotifyImportModal
+        isOpen={isSpotifyImportOpen}
+        onClose={() => setIsSpotifyImportOpen(false)}
+      />
+
+      {/* Apple Music Lossless Master & Spatial Audio HUD */}
+      <MasterTechModal />
+
+      {/* Spotify Connect & AirPlay Device Picker */}
+      <DevicePickerModal />
+
+      {/* Add to Playlist Modal */}
+      <AddToPlaylistModal />
+    </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <PlayerProvider>
+      <MainLayout />
+    </PlayerProvider>
+  );
+};
+
+export default App;

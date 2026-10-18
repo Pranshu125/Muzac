@@ -1,0 +1,20 @@
+{
+  "name": "Muzac — Liquid Glass Hi-Fi Music",
+  "short_name": "Muzac",
+  "description": "Next-Gen Liquid Glass & Claymorphism Hi-Fi Music Player with Spotify, YouTube Music, Apple Music charts & lossless audio",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#07080c",
+  "theme_color": "#07080c",
+  "orientation": "portrait",
+  "categories": ["music", "entertainment", "audio"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

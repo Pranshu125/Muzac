@@ -1,0 +1,288 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #07080c;
+    color: #f4f4f5;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+  }
+
+  /* Support iOS notch and home indicator safe areas */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ==========================================================================
+   LIQUID GLASS + CLAYMORPHISM HYBRID DESIGN SYSTEM ("LIQUID CLAY")
+   Combines translucent frosted liquid glass, specular refraction highlights,
+   and dynamic backdrop-blur with 3D inflated clay volume, dual soft shadows,
+   and tactile squishy micro-interactions in a high-contrast obsidian & porcelain palette.
+   ========================================================================== */
+
+/* 1. Structural Surfaces (Sidebar, Header, Docked Bars, Panels) */
+.clay-panel, 
+.liquid-clay-panel {
+  background: rgba(13, 15, 22, 0.76);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 
+    0 16px 36px -4px rgba(0, 0, 0, 0.8),
+    -4px -4px 14px rgba(255, 255, 255, 0.025),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.15),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.clay-panel-deep, 
+.liquid-clay-panel-deep {
+  background: rgba(9, 10, 16, 0.88);
+  backdrop-filter: blur(34px) saturate(200%);
+  -webkit-backdrop-filter: blur(34px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 22px 48px -6px rgba(0, 0, 0, 0.9),
+    -5px -5px 18px rgba(255, 255, 255, 0.03),
+    inset 1px 1px 3px rgba(255, 255, 255, 0.18),
+    inset -3px -3px 8px rgba(0, 0, 0, 0.75);
+}
+
+/* 2. Liquid Clay Cards (Track Cards, Playlists, Video Cards, Hubs) */
+.clay-card, 
+.glass-card, 
+.liquid-clay-card {
+  background: rgba(17, 19, 29, 0.68);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 10px 24px -2px rgba(0, 0, 0, 0.7),
+    -3px -3px 10px rgba(255, 255, 255, 0.02),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.14),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.55);
+  transition: all 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.clay-card:hover, 
+.glass-card:hover, 
+.liquid-clay-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  background: rgba(25, 28, 43, 0.82);
+  border-color: rgba(255, 255, 255, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.42);
+  box-shadow: 
+    0 20px 42px -4px rgba(0, 0, 0, 0.85),
+    -5px -5px 18px rgba(255, 255, 255, 0.05),
+    inset 1px 1px 3px rgba(255, 255, 255, 0.25),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.65);
+}
+
+/* 3. Liquid Clay Pills & Secondary Buttons (Chips, Controls, Badges) */
+.clay-pill, 
+.glass-pill, 
+.liquid-clay-pill {
+  background: rgba(23, 25, 37, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    -2px -2px 6px rgba(255, 255, 255, 0.025),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.14),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.45);
+  transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.clay-pill:hover, 
+.glass-pill:hover, 
+.liquid-clay-pill:hover {
+  background: rgba(35, 38, 56, 0.85);
+  border-color: rgba(255, 255, 255, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.42);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 16px rgba(0, 0, 0, 0.6),
+    -2px -2px 8px rgba(255, 255, 255, 0.04),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.22);
+}
+
+.clay-pill:active, 
+.clay-pill.active, 
+.glass-pill.active,
+.liquid-clay-pill.active {
+  background: rgba(46, 50, 72, 0.95);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.32);
+  border-top-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    inset 3px 3px 8px rgba(0, 0, 0, 0.8),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.12);
+}
+
+/* 4. Glossy White Porcelain Clay Button (Primary CTA, Big Play, Active States) */
+.clay-btn-white, 
+.liquid-clay-btn-white {
+  background: linear-gradient(180deg, #ffffff 0%, #ececed 100%);
+  color: #000000;
+  border-radius: 9999px;
+  border-top: 1px solid rgba(255, 255, 255, 1);
+  box-shadow: 
+    0 8px 22px -2px rgba(0, 0, 0, 0.65),
+    -2px -2px 8px rgba(255, 255, 255, 0.18),
+    inset 2px 2px 3px rgba(255, 255, 255, 1),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.clay-btn-white:hover, 
+.liquid-clay-btn-white:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #f4f4f6 100%);
+  transform: scale(1.04);
+  box-shadow: 
+    0 12px 28px -2px rgba(0, 0, 0, 0.75),
+    inset 2px 2px 4px rgba(255, 255, 255, 1),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.clay-btn-white:active, 
+.liquid-clay-btn-white:active {
+  transform: scale(0.96);
+  box-shadow: 
+    inset 2px 2px 6px rgba(0, 0, 0, 0.4),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.85);
+}
+
+/* 5. Inset Liquid Wells (Inputs, Search Bar, Progress Track) */
+.clay-inset, 
+.liquid-clay-inset {
+  background: rgba(8, 9, 14, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  box-shadow: 
+    inset 3px 3px 8px rgba(0, 0, 0, 0.82),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.03);
+}
+
+/* 6. Mobile Floating Bottom Navigation Glass Dock */
+.mobile-glass-dock {
+  background: rgba(11, 13, 20, 0.84);
+  backdrop-filter: blur(32px) saturate(210%);
+  -webkit-backdrop-filter: blur(32px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 
+    0 -10px 32px rgba(0, 0, 0, 0.85),
+    inset 1px 1px 3px rgba(255, 255, 255, 0.16),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Backward Compatibility Aliases */
+.glass-panel {
+  composes: liquid-clay-panel;
+}
+.glass-panel-deep {
+  composes: liquid-clay-panel-deep;
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Custom Clay Range Slider (Progress & Volume) */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(18, 20, 29, 0.9);
+  height: 6px;
+  border-radius: 9999px;
+  outline: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    inset 2px 2px 4px rgba(0, 0, 0, 0.8),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+  transition: height 0.15s ease;
+}
+
+input[type="range"]:hover {
+  height: 8px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.8),
+    inset 1px 1px 2px rgba(255, 255, 255, 1),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+
+/* Karaoke Lyrics Typography */
+.lyric-line {
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  cursor: pointer;
+}
+
+.lyric-line.active {
+  font-weight: 800;
+  color: #ffffff;
+  transform: scale(1.05);
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.85);
+  opacity: 1;
+}
+
+.lyric-line.inactive {
+  opacity: 0.3;
+  color: #71717a;
+}
+
+.lyric-line:hover {
+  opacity: 0.85;
+}
