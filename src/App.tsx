@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { PlayerProvider, usePlayer } from './context/PlayerContext';
 import { LiquidBackground } from './components/LiquidBackground';
 import { Sidebar } from './components/Sidebar';
@@ -296,6 +297,7 @@ export const App: React.FC = () => {
   return (
     <PlayerProvider>
       <MainLayout />
+      <Analytics />
     </PlayerProvider>
   );
 };
