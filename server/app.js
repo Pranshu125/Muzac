@@ -26,6 +26,28 @@ app.use(express.json());
 
 const apiRouter = express.Router();
 
+// Root API discovery endpoint
+apiRouter.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'Muzac Hi-Fi Music Engine',
+    version: '2.0.0',
+    platform: process.env.VERCEL ? 'vercel-serverless' : 'node-local',
+    endpoints: [
+      '/api/health',
+      '/api/ping',
+      '/api/home',
+      '/api/search',
+      '/api/podcasts',
+      '/api/city-charts',
+      '/api/spotify/featured',
+      '/api/videos/trending',
+      '/api/lyrics',
+      '/api/radio'
+    ]
+  });
+});
+
 // Health check
 apiRouter.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Muzac Backend is online', platform: process.env.VERCEL ? 'vercel-serverless' : 'node-local', timestamp: Date.now() });
@@ -212,5 +234,14 @@ apiRouter.get('/download/:id', async (req, res) => {
 // Dual mount: handles both /api/* (Vercel & local) and direct /* (some Vercel rewrite versions)
 app.use('/api', apiRouter);
 app.use('/', apiRouter);
+
+// Global Express error handler to prevent raw 500 HTML crashes
+app.use((err, req, res, next) => {
+  console.error('Muzac Express Server Error:', err);
+  res.status(500).json({ 
+    error: 'Internal Server Error', 
+    message: err?.message || 'An unexpected error occurred in backend services'
+  });
+});
 
 export default app;
