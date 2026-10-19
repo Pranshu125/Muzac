@@ -18,6 +18,7 @@ import {
   Search
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import { cachedFetch } from '../utils/apiCache';
 import type { Track, ViewMode, CategoryFilter } from '../types';
 
 const TOP_ARTISTS = [
@@ -62,6 +63,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const { 
     playTrack, 
     currentTrack, 
+    isPlaying,
     toggleLike, 
     isLiked, 
     downloadTrack, 
@@ -76,12 +78,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/home').then(r => r.json()),
-      fetch('/api/podcasts').then(r => r.json())
+      cachedFetch('/api/home'),
+      cachedFetch('/api/podcasts')
     ]).then(([homeData, podcastData]) => {
-      if (homeData.featuredTracks) setFeaturedTracks(homeData.featuredTracks);
-      if (homeData.curatedPlaylists) setCuratedPlaylists(homeData.curatedPlaylists);
-      if (podcastData.podcasts) setPodcasts(podcastData.podcasts);
+      if (homeData?.featuredTracks) setFeaturedTracks(homeData.featuredTracks);
+      if (homeData?.curatedPlaylists) setCuratedPlaylists(homeData.curatedPlaylists);
+      if (podcastData?.podcasts) setPodcasts(podcastData.podcasts);
     }).catch(console.error)
       .finally(() => setIsLoading(false));
   }, []);
@@ -177,10 +179,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     alt={track.title}
                     className="w-12 h-12 rounded-xl object-cover shadow-md"
                   />
-                  <div className="overflow-hidden">
-                    <p className="text-xs font-bold text-white truncate m-0 group-hover:text-zinc-200 transition">
-                      {track.title}
-                    </p>
+                  <div className="overflow-hidden flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-white truncate m-0 group-hover:text-zinc-200 transition">
+                        {track.title}
+                      </p>
+                      {isCurrent && (
+                        <div className={`playing-equalizer flex-shrink-0 ${isPlaying ? '' : 'paused'}`} title="Now Playing">
+                          <span className="eq-bar" />
+                          <span className="eq-bar" />
+                          <span className="eq-bar" />
+                        </div>
+                      )}
+                    </div>
                     <p 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -299,12 +310,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           <div className="relative flex-shrink-0 group cursor-pointer" onClick={() => playTrack(heroTrack, featuredTracks)}>
+            {/* Ambient Artwork Glow */}
+            <div 
+              className="absolute -inset-2 rounded-3xl opacity-35 blur-2xl transition-opacity group-hover:opacity-70 pointer-events-none"
+              style={{ backgroundImage: `url(${heroTrack.thumbnail})`, backgroundSize: 'cover' }}
+            />
             <img
               src={heroTrack.thumbnail}
               alt={heroTrack.title}
-              className="w-56 h-56 lg:w-64 lg:h-64 rounded-3xl object-cover shadow-2xl border border-white/20 transition-transform duration-500 group-hover:scale-105"
+              className="relative z-10 w-56 h-56 lg:w-64 lg:h-64 rounded-3xl object-cover shadow-2xl border border-white/20 transition-transform duration-500 group-hover:scale-105"
             />
-            <div className="absolute inset-0 rounded-3xl bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <div className="absolute inset-0 z-20 rounded-3xl bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
               <div className="w-14 h-14 rounded-full clay-btn-white flex items-center justify-center shadow-xl">
                 <Play className="w-6 h-6 fill-current ml-1" />
               </div>
@@ -334,16 +350,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     isCurrent ? 'border-white/40 bg-[#1c1d27]' : ''
                   }`}
                 >
-                  <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="flex items-center gap-3 overflow-hidden flex-1 min-w-0">
                     <img
                       src={track.thumbnail}
                       alt={track.title}
                       className="w-14 h-14 rounded-xl object-cover shadow-md flex-shrink-0"
                     />
-                    <div className="overflow-hidden">
-                      <p className="text-xs font-bold text-white truncate m-0 group-hover:text-zinc-200 transition">
-                        {track.title}
-                      </p>
+                    <div className="overflow-hidden flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-bold text-white truncate m-0 group-hover:text-zinc-200 transition">
+                          {track.title}
+                        </p>
+                        {isCurrent && (
+                          <div className={`playing-equalizer flex-shrink-0 ${isPlaying ? '' : 'paused'}`} title="Now Playing">
+                            <span className="eq-bar" />
+                            <span className="eq-bar" />
+                            <span className="eq-bar" />
+                          </div>
+                        )}
+                      </div>
                       <p 
                         onClick={(e) => {
                           e.stopPropagation();

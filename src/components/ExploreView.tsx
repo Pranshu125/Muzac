@@ -13,6 +13,7 @@ import {
   Plus
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import { cachedFetch } from '../utils/apiCache';
 import type { Track } from '../types';
 
 interface MoodGenre {
@@ -33,19 +34,18 @@ const MOODS: MoodGenre[] = [
 ];
 
 export const ExploreView: React.FC = () => {
-  const { playTrack, currentTrack, downloadTrack, promptAddToPlaylist } = usePlayer();
+  const { playTrack, currentTrack, isPlaying, downloadTrack, promptAddToPlaylist } = usePlayer();
   const [selectedMood, setSelectedMood] = useState<string>('Chill & Relax');
   const [moodTracks, setMoodTracks] = useState<Track[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Fetch tracks for selected mood
+  // Fetch tracks for selected mood with instant cache
   React.useEffect(() => {
     const current = MOODS.find(m => m.name === selectedMood) || MOODS[0];
     setIsLoading(true);
-    fetch(`/api/search?q=${encodeURIComponent(current.query)}&type=song`)
-      .then(res => res.json())
+    cachedFetch(`/api/search?q=${encodeURIComponent(current.query)}&type=song`)
       .then(data => {
-        if (data.results) setMoodTracks(data.results);
+        if (data?.results) setMoodTracks(data.results);
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));
@@ -162,12 +162,21 @@ export const ExploreView: React.FC = () => {
                       alt={track.title}
                       className="w-12 h-12 rounded-xl object-cover shadow-md flex-shrink-0"
                     />
-                    <div className="overflow-hidden">
-                      <p className={`text-xs font-bold truncate m-0 transition ${
-                        isCurrent ? 'text-white font-extrabold' : 'text-zinc-200 group-hover:text-white'
-                      }`}>
-                        {track.title}
-                      </p>
+                    <div className="overflow-hidden flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className={`text-xs font-bold truncate m-0 transition ${
+                          isCurrent ? 'text-white font-extrabold' : 'text-zinc-200 group-hover:text-white'
+                        }`}>
+                          {track.title}
+                        </p>
+                        {isCurrent && (
+                          <div className={`playing-equalizer flex-shrink-0 ${isPlaying ? '' : 'paused'}`} title="Now Playing">
+                            <span className="eq-bar" />
+                            <span className="eq-bar" />
+                            <span className="eq-bar" />
+                          </div>
+                        )}
+                      </div>
                       <p className="text-[11px] text-zinc-400 truncate m-0 mt-0.5">
                         {track.artist}
                       </p>

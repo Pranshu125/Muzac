@@ -57,7 +57,14 @@ export const QueueDrawer: React.FC = () => {
   };
 
   return (
-    <div className="fixed top-16 bottom-22 right-0 w-80 lg:w-96 clay-panel-deep border-l border-white/10 z-30 flex flex-col p-5 shadow-2xl select-none animate-in slide-in-from-right duration-250 text-white">
+    <>
+      {/* Mobile Backdrop */}
+      <div 
+        onClick={() => setIsQueueOpen(false)} 
+        className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-40 animate-in fade-in duration-200"
+      />
+
+      <div className="fixed top-0 md:top-16 bottom-0 md:bottom-22 right-0 w-full sm:w-88 lg:w-96 clay-panel-deep border-l border-white/15 z-50 flex flex-col p-5 shadow-2xl select-none animate-in slide-in-from-right duration-250 text-white">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
@@ -246,5 +253,6 @@ export const QueueDrawer: React.FC = () => {
         )}
       </div>
     </div>
-  );
+  </>
+);
 };

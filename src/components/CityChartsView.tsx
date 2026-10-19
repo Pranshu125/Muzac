@@ -11,6 +11,7 @@ import {
   Plus
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import { cachedFetch } from '../utils/apiCache';
 import type { CityChart, Track } from '../types';
 
 export const CityChartsView: React.FC = () => {
@@ -21,10 +22,9 @@ export const CityChartsView: React.FC = () => {
   const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch('/api/city-charts')
-      .then(res => res.json())
+    cachedFetch('/api/city-charts')
       .then(data => {
-        if (data.charts) {
+        if (data?.charts) {
           setCityCharts(data.charts);
           setSelectedCity(data.charts[0]);
         }
@@ -35,8 +35,7 @@ export const CityChartsView: React.FC = () => {
   useEffect(() => {
     if (!selectedCity) return;
     setIsLoadingTracks(true);
-    fetch(`/api/search?q=${encodeURIComponent(selectedCity.query)}&type=song`)
-      .then(res => res.json())
+    cachedFetch(`/api/search?q=${encodeURIComponent(selectedCity.query)}&type=song`)
       .then(data => {
         if (data.results) setCityTracks(data.results);
       })

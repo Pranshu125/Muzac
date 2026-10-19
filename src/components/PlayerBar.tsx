@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Play, 
   Pause, 
@@ -78,6 +78,18 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [isDraggingSeek, setIsDraggingSeek] = useState(false);
   const [dragSeekTime, setDragSeekTime] = useState(0);
+  const speedMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Close speed menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (speedMenuRef.current && !speedMenuRef.current.contains(e.target as Node)) {
+        setShowSpeedMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs < 0) return '0:00';
@@ -117,17 +129,30 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
 
   if (!currentTrack) {
     return (
-      <div className="hidden md:flex fixed bottom-0 left-0 right-0 h-22 clay-panel-deep border-t border-white/10 items-center justify-between px-6 z-30 select-none shadow-2xl">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl clay-card flex items-center justify-center text-zinc-500 border border-white/10">
-            <Mic2 className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-black text-white tracking-wide m-0">Ready to Play</p>
-            <p className="text-[11px] text-zinc-400 m-0">Select any song, podcast episode, or video to stream in Hi-Res ALAC</p>
+      <>
+        {/* Mobile Mini Ready-to-Play Indicator */}
+        <div className="md:hidden fixed bottom-16 left-2.5 right-2.5 h-12 clay-panel rounded-2xl border border-white/15 px-3.5 flex items-center justify-between z-30 select-none shadow-lg">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl clay-card flex items-center justify-center text-zinc-400">
+              <Mic2 className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-xs font-bold text-zinc-300">Ready to Stream &bull; Select a Song</span>
           </div>
         </div>
-      </div>
+
+        {/* Desktop Fixed Dock Player Bar */}
+        <div className="hidden md:flex fixed bottom-0 left-0 right-0 h-22 clay-panel-deep border-t border-white/10 items-center justify-between px-6 z-30 select-none shadow-2xl">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl clay-card flex items-center justify-center text-zinc-500 border border-white/10">
+              <Mic2 className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-white tracking-wide m-0">Ready to Play</p>
+              <p className="text-[11px] text-zinc-400 m-0">Select any song, podcast episode, or video to stream in Hi-Res ALAC</p>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -152,10 +177,18 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
         </div>
       )}
 
-      {/* Mobile Floating Mini Player (< md) */}
+      {/* Mobile Floating Mini Player (< md) with Real-Time Micro Progress Bar */}
       <div 
-        className="md:hidden fixed bottom-16 left-2.5 right-2.5 h-15 clay-panel rounded-2xl border border-white/20 px-3 flex items-center justify-between z-30 select-none shadow-[0_8px_30px_rgba(0,0,0,0.9)]"
+        className="md:hidden fixed bottom-16 left-2.5 right-2.5 h-15 clay-panel rounded-2xl border border-white/20 px-3 flex items-center justify-between z-30 select-none shadow-[0_8px_30px_rgba(0,0,0,0.9)] overflow-hidden relative"
       >
+        {/* Real-time 2px micro progress bar */}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 pointer-events-none">
+          <div 
+            className="h-full bg-white transition-all duration-150" 
+            style={{ width: `${duration > 0 ? (displayTime / duration) * 100 : 0}%` }}
+          />
+        </div>
+
         {/* Tap on Left Artwork/Title opens Fullscreen/Lyrics view */}
         <div 
           className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
@@ -414,7 +447,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
           </button>
 
           {/* Speed Selector */}
-          <div className="relative">
+          <div ref={speedMenuRef} className="relative">
             <button
               onClick={() => setShowSpeedMenu(prev => !prev)}
               className="p-2 rounded-2xl clay-pill text-xs font-mono font-bold text-zinc-300 hover:text-white transition"
@@ -469,7 +502,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
             )}
           </button>
 
-          {/* Volume Slider & Wheel Handler */}
+          {/* Volume Slider & Wheel Handler with Percentage */}
           <div 
             className="flex items-center gap-2 pl-2"
             onWheel={handleVolumeWheel}
@@ -493,8 +526,11 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
               step={0.01}
               value={isMuted ? 0 : volume}
               onChange={handleVolumeChange}
-              className="w-20 cursor-pointer accent-white"
+              className="w-18 cursor-pointer accent-white"
             />
+            <span className="text-[10px] font-mono text-zinc-400 font-bold w-6 text-right select-none">
+              {isMuted ? '0%' : `${Math.round(volume * 100)}%`}
+            </span>
           </div>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
   Download 
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import { cachedFetch } from '../utils/apiCache';
 import type { Track, Playlist } from '../types';
 
 interface SpotifyHubProps {
@@ -28,13 +29,12 @@ export const SpotifyHub: React.FC<SpotifyHubProps> = () => {
   const [curatedPlaylists, setCuratedPlaylists] = useState<any[]>([]);
   const [isLoadingCurated, setIsLoadingCurated] = useState(false);
 
-  // Load curated playlists
+  // Load curated playlists with instant cache
   React.useEffect(() => {
     setIsLoadingCurated(true);
-    fetch('/api/spotify/featured')
-      .then(res => res.json())
+    cachedFetch('/api/spotify/featured')
       .then(data => {
-        if (data.playlists) setCuratedPlaylists(data.playlists);
+        if (data?.playlists) setCuratedPlaylists(data.playlists);
       })
       .catch(console.error)
       .finally(() => setIsLoadingCurated(false));

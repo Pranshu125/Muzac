@@ -28,11 +28,17 @@ const apiRouter = express.Router();
 
 // Health check
 apiRouter.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Muzac Backend is online', platform: process.env.VERCEL ? 'vercel-serverless' : 'node-local' });
+  res.json({ status: 'ok', message: 'Muzac Backend is online', platform: process.env.VERCEL ? 'vercel-serverless' : 'node-local', timestamp: Date.now() });
+});
+
+// Ping endpoint for instant telemetry
+apiRouter.get('/ping', (req, res) => {
+  res.json({ pong: true, timestamp: Date.now() });
 });
 
 // Home feed: Featured tracks, Curated Spotify playlists, Moods & Genres
 apiRouter.get('/home', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
   res.json({
     featuredTracks: FEATURED_TRENDING_TRACKS,
     curatedPlaylists: CURATED_SPOTIFY_PLAYLISTS,

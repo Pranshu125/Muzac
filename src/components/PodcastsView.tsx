@@ -16,6 +16,7 @@ import {
   Plus
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import { cachedFetch } from '../utils/apiCache';
 import type { PodcastShow, PodcastEpisode, Track } from '../types';
 
 export const PodcastsView: React.FC = () => {
@@ -26,11 +27,10 @@ export const PodcastsView: React.FC = () => {
   const [selectedShow, setSelectedShow] = useState<PodcastShow | null>(null);
 
   useEffect(() => {
-    fetch('/api/podcasts')
-      .then(res => res.json())
+    cachedFetch('/api/podcasts')
       .then(data => {
-        if (data.categories) setCategories(data.categories);
-        if (data.podcasts) setPodcasts(data.podcasts);
+        if (data?.categories) setCategories(data.categories);
+        if (data?.podcasts) setPodcasts(data.podcasts);
       })
       .catch(console.error);
   }, []);
