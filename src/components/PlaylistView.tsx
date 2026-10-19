@@ -62,7 +62,9 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({
         <div className="relative group flex-shrink-0">
           <img
             src={coverImage}
-            alt={title}
+            alt={`${title} playlist artwork`}
+            loading="lazy"
+            decoding="async"
             className="w-48 h-48 rounded-3xl object-cover shadow-2xl border-2 border-white/20"
           />
           {isLikedView && (

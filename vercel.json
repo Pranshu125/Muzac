@@ -13,7 +13,7 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/((?!assets/|favicon\\.svg|manifest\\.json|sw\\.js).*)",
+      "source": "/((?!assets/|favicon\\.svg|manifest\\.json|sw\\.js|robots\\.txt|sitemap\\.xml|og-image\\.svg|404\\.html).*)",
       "destination": "/index.html"
     }
   ]

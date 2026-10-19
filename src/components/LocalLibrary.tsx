@@ -78,9 +78,9 @@ export const LocalLibrary: React.FC = () => {
             <span>Audiophile Local File Player</span>
           </div>
 
-          <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight m-0">
-            Offline & Local Files Library
-          </h2>
+          <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight m-0">
+            Offline &amp; Local Files Library
+          </h1>
           <p className="text-sm text-zinc-400 mt-2 leading-relaxed m-0">
             Play music files directly from your hard drive with full 10-band equalizer, spatial soundstage mode, and real-time audio analysis.
           </p>

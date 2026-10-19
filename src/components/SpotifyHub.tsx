@@ -105,9 +105,9 @@ export const SpotifyHub: React.FC<SpotifyHubProps> = () => {
             <span>Spotify Connect & Metadata Bridge</span>
           </div>
 
-          <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight m-0">
-            Spotify Music Explorer & Importer
-          </h2>
+          <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight m-0">
+            Spotify Music Explorer &amp; Importer
+          </h1>
           <p className="text-sm text-zinc-400 mt-2 leading-relaxed m-0">
             Paste any Spotify Playlist, Album, or Track URL below. Muzac automatically bridges Spotify metadata with lossless bit-perfect streams without advertisements or paid Spotify accounts.
           </p>

@@ -58,6 +58,31 @@ apiRouter.get('/ping', (req, res) => {
   res.json({ pong: true, timestamp: Date.now() });
 });
 
+// Contact & Feedback submission (Working contact form & song requests)
+apiRouter.post(['/contact', '/feedback'], (req, res) => {
+  const { category = 'general', name = 'Anonymous Listener', email = '', subject = 'Feedback', message = '' } = req.body || {};
+  if (!message || !message.trim()) {
+    return res.status(400).json({ success: false, error: 'Feedback message cannot be empty' });
+  }
+
+  const feedbackEntry = {
+    id: `fb_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    category,
+    name: String(name).slice(0, 80),
+    email: String(email).slice(0, 120),
+    subject: String(subject).slice(0, 150),
+    message: String(message).slice(0, 2000),
+    timestamp: new Date().toISOString()
+  };
+
+  console.log('[Muzac Feedback Received]', feedbackEntry);
+  res.json({
+    success: true,
+    message: 'Your feedback has been securely recorded. Thank you for supporting Muzac!',
+    id: feedbackEntry.id
+  });
+});
+
 // Home feed: Featured tracks, Curated Spotify playlists, Moods & Genres
 apiRouter.get('/home', (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');

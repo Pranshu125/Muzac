@@ -13,7 +13,8 @@ import {
   Sparkles,
   Info,
   TrendingUp,
-  Clock
+  Clock,
+  MessageSquare
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import type { CategoryFilter } from '../types';
@@ -36,6 +37,7 @@ interface HeaderProps {
   selectedCategoryFilter: CategoryFilter;
   onSelectCategoryFilter: (filter: CategoryFilter) => void;
   onOpenSpotifyImport: () => void;
+  onOpenContact?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,7 +46,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchSubmit,
   selectedCategoryFilter,
   onSelectCategoryFilter,
-  onOpenSpotifyImport
+  onOpenSpotifyImport,
+  onOpenContact
 }) => {
   const {
     audioQuality,
@@ -288,6 +291,17 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
+
+        {/* Contact & Feedback */}
+        {onOpenContact && (
+          <button
+            onClick={onOpenContact}
+            className="p-2 rounded-2xl clay-pill text-zinc-400 hover:text-white transition"
+            title="Contact, Requests & Feedback"
+          >
+            <MessageSquare className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Fullscreen Mode */}
         <button

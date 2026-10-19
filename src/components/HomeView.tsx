@@ -15,7 +15,8 @@ import {
   Globe2,
   CheckCircle2,
   ChevronRight,
-  Search
+  Search,
+  Share2
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { cachedFetch } from '../utils/apiCache';
@@ -47,6 +48,7 @@ interface HomeViewProps {
   onSelectView: (view: ViewMode) => void;
   onOpenSpotifyImport: () => void;
   onSelectArtist?: (artist: string) => void;
+  onOpenShare?: (track: Track) => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -58,7 +60,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   selectedCategoryFilter,
   onSelectView,
   onOpenSpotifyImport,
-  onSelectArtist
+  onSelectArtist,
+  onOpenShare
 }) => {
   const { 
     playTrack, 
@@ -303,8 +306,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <button
                 onClick={() => toggleLike(heroTrack)}
                 className="p-3 rounded-2xl clay-pill text-white hover:border-white/30"
+                title="Save to Favorites"
               >
                 <Heart className={`w-4 h-4 ${isLiked(heroTrack.id) ? 'fill-white text-white' : 'text-zinc-400'}`} />
+              </button>
+
+              <button
+                onClick={() => onOpenShare?.(heroTrack)}
+                className="p-3 rounded-2xl clay-pill text-white hover:border-white/30"
+                title="Share Song (WhatsApp, Socials)"
+              >
+                <Share2 className="w-4 h-4 text-zinc-400 hover:text-white" />
               </button>
             </div>
           </div>
@@ -317,7 +329,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
             />
             <img
               src={heroTrack.thumbnail}
-              alt={heroTrack.title}
+              alt={`${heroTrack.title} by ${heroTrack.artist}`}
+              loading="lazy"
+              decoding="async"
               className="relative z-10 w-56 h-56 lg:w-64 lg:h-64 rounded-3xl object-cover shadow-2xl border border-white/20 transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 z-20 rounded-3xl bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">

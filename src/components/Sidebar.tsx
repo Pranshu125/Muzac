@@ -15,7 +15,10 @@ import {
   Library,
   Globe2,
   Trophy,
-  Trash2
+  Trash2,
+  MessageSquare,
+  ShieldCheck,
+  Database
 } from 'lucide-react';
 import type { ViewMode } from '../types';
 import { usePlayer } from '../context/PlayerContext';
@@ -26,6 +29,9 @@ interface SidebarProps {
   onOpenSpotifyImport: () => void;
   onSelectPlaylist: (playlistId: string) => void;
   selectedPlaylistId: string | null;
+  onOpenContact?: () => void;
+  onOpenPrivacy?: () => void;
+  onOpenBackup?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -33,7 +39,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectView,
   onOpenSpotifyImport,
   onSelectPlaylist,
-  selectedPlaylistId
+  selectedPlaylistId,
+  onOpenContact,
+  onOpenPrivacy,
+  onOpenBackup
 }) => {
   const { customPlaylists, createPlaylist, deletePlaylist, likedTracks, downloadedTracks } = usePlayer();
   const [isCreatingPl, setIsCreatingPl] = useState(false);
@@ -220,15 +229,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Spotify Import Quick Link */}
-      <div className="pt-3 border-t border-white/10">
+      {/* Compliance, Support & Utility Tools */}
+      <div className="pt-3 border-t border-white/10 space-y-2">
         <button
           onClick={onOpenSpotifyImport}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl clay-pill text-white text-xs font-bold hover:bg-white hover:text-black transition group shadow-md"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl clay-pill text-white text-xs font-bold hover:bg-white hover:text-black transition group shadow-md"
         >
           <Sparkles className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
           <span>Import Spotify Link</span>
         </button>
+
+        <div className="grid grid-cols-3 gap-1 pt-1 text-[11px] text-zinc-400">
+          <button
+            onClick={onOpenBackup}
+            className="p-1.5 rounded-lg hover:bg-white/10 hover:text-white transition flex flex-col items-center text-center"
+            title="Backup & Restore Library"
+          >
+            <Database className="w-3.5 h-3.5 mb-1 text-zinc-300" />
+            <span>Backup</span>
+          </button>
+          <button
+            onClick={onOpenContact}
+            className="p-1.5 rounded-lg hover:bg-white/10 hover:text-white transition flex flex-col items-center text-center"
+            title="Contact & Requests"
+          >
+            <MessageSquare className="w-3.5 h-3.5 mb-1 text-zinc-300" />
+            <span>Contact</span>
+          </button>
+          <button
+            onClick={onOpenPrivacy}
+            className="p-1.5 rounded-lg hover:bg-white/10 hover:text-white transition flex flex-col items-center text-center"
+            title="Privacy Policy"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 mb-1 text-zinc-300" />
+            <span>Privacy</span>
+          </button>
+        </div>
       </div>
     </aside>
   );

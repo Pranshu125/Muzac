@@ -61,9 +61,9 @@ export const ExploreView: React.FC = () => {
             <span>Curated Soundstages & Charts</span>
           </div>
 
-          <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight m-0">
-            Moods, Genres & Global Charts
-          </h2>
+          <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight m-0">
+            Moods, Genres &amp; Global Charts
+          </h1>
           <p className="text-sm text-zinc-400 mt-2 leading-relaxed m-0">
             Explore meticulously curated soundscapes tuned for focus, workouts, late night relaxation, and chart-topping hits worldwide in Lossless bit-perfect audio.
           </p>

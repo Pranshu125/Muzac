@@ -23,15 +23,18 @@ import {
   Sparkles,
   ShieldCheck,
   Disc3,
-  AlertCircle
+  AlertCircle,
+  Share2
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import type { Track } from '../types';
 
 interface PlayerBarProps {
   onSelectArtist?: (artist: string) => void;
+  onOpenShare?: (track: Track) => void;
 }
 
-export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
+export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist, onOpenShare }) => {
   const {
     currentTrack,
     isPlaying,
@@ -205,11 +208,18 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
           </div>
         </div>
 
-        {/* Quick Mobile Controls: Like, Play/Pause, Next */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        {/* Quick Mobile Controls: Share, Like, Play/Pause, Next */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => onOpenShare?.(currentTrack)}
+            className="p-1.5 rounded-xl text-zinc-400 hover:text-white transition"
+            title="Share Song (WhatsApp, Socials)"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
           <button
             onClick={() => toggleLike(currentTrack)}
-            className="p-2 rounded-xl text-zinc-400 hover:text-white transition"
+            className="p-1.5 rounded-xl text-zinc-400 hover:text-white transition"
           >
             <Heart className={`w-4 h-4 ${liked ? 'fill-white text-white' : ''}`} />
           </button>
@@ -309,6 +319,14 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist }) => {
               ) : (
                 <Download className="w-4 h-4" />
               )}
+            </button>
+
+            <button
+              onClick={() => onOpenShare?.(currentTrack)}
+              className="p-2 rounded-xl clay-pill text-zinc-400 hover:text-white transition"
+              title="Share Track (WhatsApp, X, Copy Link)"
+            >
+              <Share2 className="w-4 h-4" />
             </button>
           </div>
         </div>
