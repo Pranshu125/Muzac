@@ -95,7 +95,8 @@ interface PlayerContextType {
   toggleLike: (track: Track) => void;
   isLiked: (trackId: string) => boolean;
   downloadTrack: (track: Track) => Promise<void>;
-  createPlaylist: (title: string, description?: string) => Playlist;
+  createPlaylist: (title: string, description?: string, thumbnail?: string, genre?: string) => Playlist;
+  updatePlaylist: (playlistId: string, updates: Partial<Playlist>) => void;
   addToPlaylist: (playlistId: string, track: Track) => void;
   deletePlaylist: (playlistId: string) => void;
   removeFromPlaylist: (playlistId: string, trackId: string) => void;
@@ -922,11 +923,13 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   // Playlists
-  const createPlaylist = (title: string, description: string = '') => {
+  const createPlaylist = (title: string, description: string = '', thumbnail?: string, genre?: string) => {
     const newPl: Playlist = {
       id: `pl-${Date.now()}`,
       title,
       description,
+      thumbnail: thumbnail || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400',
+      genre: genre || 'Custom',
       tracks: [],
       isCustom: true
     };
@@ -936,6 +939,19 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return updated;
     });
     return newPl;
+  };
+
+  const updatePlaylist = (playlistId: string, updates: Partial<Playlist>) => {
+    setCustomPlaylists(prev => {
+      const updated = prev.map(p => {
+        if (p.id === playlistId) {
+          return { ...p, ...updates };
+        }
+        return p;
+      });
+      localStorage.setItem('muzac_playlists', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const addToPlaylist = (playlistId: string, track: Track) => {
@@ -1139,6 +1155,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isLiked,
         downloadTrack,
         createPlaylist,
+        updatePlaylist,
         addToPlaylist,
         deletePlaylist,
         removeFromPlaylist,

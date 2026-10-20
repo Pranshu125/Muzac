@@ -18,10 +18,13 @@ import {
   Trash2,
   MessageSquare,
   ShieldCheck,
-  Database
+  Database,
+  User,
+  LogIn
 } from 'lucide-react';
 import type { ViewMode } from '../types';
 import { usePlayer } from '../context/PlayerContext';
+import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
   currentView: ViewMode;
@@ -32,6 +35,7 @@ interface SidebarProps {
   onOpenContact?: () => void;
   onOpenPrivacy?: () => void;
   onOpenBackup?: () => void;
+  onOpenCreatePlaylist?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -42,9 +46,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedPlaylistId,
   onOpenContact,
   onOpenPrivacy,
-  onOpenBackup
+  onOpenBackup,
+  onOpenCreatePlaylist
 }) => {
   const { customPlaylists, createPlaylist, deletePlaylist, likedTracks, downloadedTracks } = usePlayer();
+  const { user, setIsAuthModalOpen, setIsProfileModalOpen } = useAuth();
   const [isCreatingPl, setIsCreatingPl] = useState(false);
   const [newPlTitle, setNewPlTitle] = useState('');
 
@@ -170,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Playlists
             </span>
             <button
-              onClick={() => setIsCreatingPl(true)}
+              onClick={() => onOpenCreatePlaylist ? onOpenCreatePlaylist() : setIsCreatingPl(true)}
               className="p-1.5 rounded-xl clay-pill text-zinc-400 hover:text-white transition"
               title="Create Playlist"
             >
@@ -264,6 +270,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <ShieldCheck className="w-3.5 h-3.5 mb-1 text-zinc-300" />
             <span>Privacy</span>
           </button>
+        </div>
+
+        {/* User Profile Mini Bar */}
+        <div className="pt-1 border-t border-white/10">
+          {user ? (
+            <div
+              onClick={() => setIsProfileModalOpen(true)}
+              className="p-2 rounded-2xl clay-card border border-white/10 flex items-center justify-between cursor-pointer hover:border-white/30 transition group"
+              title="View Account Profile &amp; Stats"
+            >
+              <div className="flex items-center gap-2.5 truncate">
+                <img
+                  src={user.avatar}
+                  alt={user.displayName}
+                  className="w-8 h-8 rounded-full object-cover border border-white/20 flex-shrink-0"
+                />
+                <div className="truncate text-left">
+                  <span className="text-xs font-black text-white block truncate group-hover:text-zinc-200">
+                    {user.displayName}
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-mono block">
+                    {user.tier}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="w-full py-2 rounded-2xl clay-btn-white text-black font-extrabold text-xs flex items-center justify-center gap-2 transition"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In / Register</span>
+            </button>
+          )}
         </div>
       </div>
     </aside>

@@ -18,6 +18,8 @@ import {
 import { getSpotifyData, CURATED_SPOTIFY_PLAYLISTS } from './spotify.js';
 import { getLyrics } from './lyrics.js';
 import { FEATURED_PODCASTS, PODCAST_CATEGORIES } from './podcasts.js';
+import { registerUser, loginUser, getUserByToken } from './auth.js';
+import { SPOTIFY_TOP_50, APPLE_MUSIC_HITS, YOUTUBE_TRENDING, BILLBOARD_HOT_100 } from './trending.js';
 
 const app = express();
 
@@ -36,6 +38,10 @@ apiRouter.get('/', (req, res) => {
     endpoints: [
       '/api/health',
       '/api/ping',
+      '/api/auth/register',
+      '/api/auth/login',
+      '/api/auth/me',
+      '/api/trending',
       '/api/home',
       '/api/search',
       '/api/podcasts',
@@ -80,6 +86,71 @@ apiRouter.post(['/contact', '/feedback'], (req, res) => {
     success: true,
     message: 'Your feedback has been securely recorded. Thank you for supporting Muzac!',
     id: feedbackEntry.id
+  });
+});
+
+// Authentication Endpoints
+apiRouter.post('/auth/register', (req, res) => {
+  try {
+    const { username, email, password, displayName, avatar } = req.body || {};
+    const result = registerUser({ username, email, password, displayName, avatar });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+apiRouter.post('/auth/login', (req, res) => {
+  try {
+    const { usernameOrEmail, password } = req.body || {};
+    const result = loginUser({ usernameOrEmail, password });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(401).json({ success: false, error: err.message });
+  }
+});
+
+apiRouter.get('/auth/me', (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  const user = getUserByToken(token);
+  if (!user) {
+    return res.status(401).json({ success: false, error: 'Unauthorized or session expired' });
+  }
+  res.json({ success: true, user });
+});
+
+// Multi-Platform Trending Engine: Spotify, Apple Music, YouTube Music, Billboard
+apiRouter.get('/trending', (req, res) => {
+  const { source = 'all' } = req.query;
+  res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
+  
+  if (source === 'spotify') {
+    return res.json({ source: 'spotify', tracks: SPOTIFY_TOP_50 });
+  }
+  if (source === 'apple') {
+    return res.json({ source: 'apple', tracks: APPLE_MUSIC_HITS });
+  }
+  if (source === 'youtube') {
+    return res.json({ source: 'youtube', tracks: YOUTUBE_TRENDING });
+  }
+  if (source === 'billboard') {
+    return res.json({ source: 'billboard', tracks: BILLBOARD_HOT_100 });
+  }
+
+  // Combined all sources
+  res.json({
+    source: 'all',
+    spotify: SPOTIFY_TOP_50,
+    apple: APPLE_MUSIC_HITS,
+    youtube: YOUTUBE_TRENDING,
+    billboard: BILLBOARD_HOT_100,
+    all: [
+      ...SPOTIFY_TOP_50.slice(0, 4),
+      ...APPLE_MUSIC_HITS.slice(0, 4),
+      ...YOUTUBE_TRENDING.slice(0, 4),
+      ...BILLBOARD_HOT_100.slice(0, 4)
+    ]
   });
 });
 

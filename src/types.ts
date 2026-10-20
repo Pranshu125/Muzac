@@ -135,3 +135,18 @@ export interface AudioOutputDevice {
   quality: string;
 }
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  displayName: string;
+  email: string;
+  avatar: string;
+  tier: string;
+  createdAt: string;
+  listeningHours: number;
+  favoriteGenres: string[];
+}
+
+export type TrendingSource = 'all' | 'spotify' | 'apple' | 'youtube' | 'billboard';
+
+

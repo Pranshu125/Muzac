@@ -49,6 +49,7 @@ interface HomeViewProps {
   onOpenSpotifyImport: () => void;
   onSelectArtist?: (artist: string) => void;
   onOpenShare?: (track: Track) => void;
+  onOpenSpotifySource?: (track: Track) => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -61,7 +62,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onSelectView,
   onOpenSpotifyImport,
   onSelectArtist,
-  onOpenShare
+  onOpenShare,
+  onOpenSpotifySource
 }) => {
   const { 
     playTrack, 
@@ -78,6 +80,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [curatedPlaylists, setCuratedPlaylists] = useState<any[]>([]);
   const [podcasts, setPodcasts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [trendingSource, setTrendingSource] = useState<'all' | 'spotify' | 'apple' | 'youtube' | 'billboard'>('all');
+  const [trendingTracks, setTrendingTracks] = useState<any[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -90,6 +94,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }).catch(console.error)
       .finally(() => setIsLoading(false));
   }, []);
+
+  useEffect(() => {
+    cachedFetch(`/api/trending?source=${trendingSource}`)
+      .then(data => {
+        if (data?.tracks) {
+          setTrendingTracks(data.tracks);
+        } else if (data?.all) {
+          setTrendingTracks(data.all);
+        }
+      })
+      .catch(console.error);
+  }, [trendingSource]);
 
   const showPodcastsSection = selectedCategoryFilter === 'all' || selectedCategoryFilter === 'podcasts';
   const showMusicSection = selectedCategoryFilter === 'all' || selectedCategoryFilter === 'music' || ['chill', 'workout', 'focus'].includes(selectedCategoryFilter);
@@ -409,6 +425,140 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
                     <div className="w-8 h-8 rounded-full clay-btn-white flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition shadow-md">
                       <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Multi-Platform Live Trending Hub (Spotify, Apple Music, YouTube Music, Billboard) */}
+      {showMusicSection && trendingTracks.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+            <div className="flex items-center gap-2">
+              <Flame className="w-5 h-5 text-amber-400" />
+              <div>
+                <h2 className="text-lg font-black text-white tracking-tight m-0">
+                  Global Trending Charts
+                </h2>
+                <p className="text-[11px] text-zinc-400 m-0">
+                  Live data reverse-engineered from Spotify, Apple Music, YouTube Music &amp; Billboard
+                </p>
+              </div>
+            </div>
+
+            {/* Platform Selector Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-1">
+              {[
+                { id: 'all', label: '🔥 All Hits' },
+                { id: 'spotify', label: '🟢 Spotify Top 50' },
+                { id: 'apple', label: '🍎 Apple Music Spatial' },
+                { id: 'youtube', label: '🔴 YouTube Trending' },
+                { id: 'billboard', label: '🏆 Billboard 100' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setTrendingSource(tab.id as any)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    trendingSource === tab.id
+                      ? 'clay-btn-white text-black font-extrabold shadow-md'
+                      : 'clay-pill text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {trendingTracks.map((t, idx) => {
+              const isCurrent = currentTrack?.id === t.id;
+              const rank = t.rank || (idx + 1);
+              const rankColor = rank === 1 ? 'text-amber-300' : rank === 2 ? 'text-zinc-300' : rank === 3 ? 'text-amber-600' : 'text-zinc-500';
+
+              return (
+                <div
+                  key={`${t.id}-${idx}`}
+                  onClick={() => playTrack(t, trendingTracks)}
+                  className={`clay-card rounded-2xl p-3 flex flex-col justify-between group cursor-pointer transition ${
+                    isCurrent ? 'ring-2 ring-white/60 bg-[#1c1d27]' : ''
+                  }`}
+                >
+                  <div className="relative overflow-hidden rounded-xl aspect-square mb-2.5">
+                    <img
+                      src={t.thumbnail}
+                      alt={t.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    
+                    {/* Rank Badge */}
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg clay-panel-deep border border-white/20 text-[10px] font-black uppercase font-mono flex items-center gap-1">
+                      <span className={rankColor}>#{rank}</span>
+                      {t.platform && (
+                        <span className="text-[9px] uppercase font-bold text-zinc-400">&bull; {t.platform}</span>
+                      )}
+                    </div>
+
+                    {/* Hover Play Button Overlay */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <div className="w-12 h-12 rounded-full clay-btn-white flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition">
+                        <Play className="w-5 h-5 fill-current ml-0.5 text-black" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-black text-white truncate m-0 group-hover:text-zinc-200">
+                      {t.title}
+                    </h4>
+                    <p 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectArtist?.(t.artist);
+                      }}
+                      className="text-[11px] text-zinc-400 truncate mt-0.5 m-0 hover:text-white hover:underline cursor-pointer"
+                    >
+                      {t.artist}
+                    </p>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 text-[10px] text-zinc-400 font-mono">
+                      <span className="truncate max-w-[140px]">{t.streams || t.genre || 'Trending'}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            promptAddToPlaylist(t);
+                          }}
+                          className="p-1 hover:text-white transition"
+                          title="Add to Playlist"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLike(t);
+                          }}
+                          className="p-1 hover:text-white transition"
+                          title="Like Song"
+                        >
+                          <Heart className={`w-3 h-3 ${isLiked(t.id) ? 'fill-white text-white' : ''}`} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenSpotifySource?.(t);
+                          }}
+                          className="p-1 hover:text-emerald-400 transition"
+                          title="Spotify Source Engine Info"
+                        >
+                          <Disc3 className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

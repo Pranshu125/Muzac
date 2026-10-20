@@ -32,9 +32,10 @@ import type { Track } from '../types';
 interface PlayerBarProps {
   onSelectArtist?: (artist: string) => void;
   onOpenShare?: (track: Track) => void;
+  onOpenSpotifySource?: (track: Track) => void;
 }
 
-export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist, onOpenShare }) => {
+export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist, onOpenShare, onOpenSpotifySource }) => {
   const {
     currentTrack,
     isPlaying,
@@ -281,6 +282,14 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({ onSelectArtist, onOpenShar
                 title="Apple Music Master Audio HUD"
               >
                 MASTER
+              </button>
+              <button
+                onClick={() => onOpenSpotifySource?.(currentTrack)}
+                className="px-1.5 py-0.5 text-[9px] font-black rounded-md clay-pill text-emerald-400 border border-emerald-500/30 hover:bg-emerald-400 hover:text-black transition uppercase tracking-wider flex items-center gap-1"
+                title="Spotify & Multi-Source Engine Inspector"
+              >
+                <Disc3 className="w-2.5 h-2.5" />
+                <span>SOURCES</span>
               </button>
               {currentTrack.type === 'podcast' && (
                 <span className="px-1.5 py-0.5 text-[9px] font-black rounded-md clay-pill text-zinc-300 border border-white/10 uppercase">

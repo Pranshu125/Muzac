@@ -14,9 +14,12 @@ import {
   Info,
   TrendingUp,
   Clock,
-  MessageSquare
+  MessageSquare,
+  User,
+  LogIn
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import { useAuth } from '../context/AuthContext';
 import type { CategoryFilter } from '../types';
 
 const TRENDING_SEARCHES = [
@@ -64,6 +67,8 @@ export const Header: React.FC<HeaderProps> = ({
     setSleepTimer,
     setIsMasterTechOpen
   } = usePlayer();
+
+  const { user, setIsAuthModalOpen, setIsProfileModalOpen, isAuthenticated } = useAuth();
 
   const [showSleepMenu, setShowSleepMenu] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -311,6 +316,32 @@ export const Header: React.FC<HeaderProps> = ({
         >
           {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
+
+        {/* User Account / Profile Button */}
+        {user ? (
+          <button
+            onClick={() => setIsProfileModalOpen(true)}
+            className="flex items-center gap-2 p-1 pr-2.5 rounded-full clay-pill text-xs font-bold text-white hover:border-white/30 transition shadow-sm"
+            title={`Account: ${user.displayName} (@${user.username})`}
+          >
+            <img
+              src={user.avatar}
+              alt={user.displayName}
+              className="w-7 h-7 rounded-full object-cover border border-white/30"
+            />
+            <span className="hidden sm:inline max-w-[90px] truncate text-[11px] font-extrabold">
+              {user.displayName}
+            </span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="px-3 py-1.5 rounded-2xl clay-btn-white text-black font-extrabold text-xs flex items-center gap-1.5 transition hover:scale-105 active:scale-95 shadow-sm"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sign In</span>
+          </button>
+        )}
       </div>
     </header>
   );

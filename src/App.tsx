@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PlayerProvider, usePlayer } from './context/PlayerContext';
+import { AuthProvider } from './context/AuthContext';
 import { LiquidBackground } from './components/LiquidBackground';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -29,6 +30,10 @@ import { PrivacyModal } from './components/PrivacyModal';
 import { ShareModal } from './components/ShareModal';
 import { BackupModal } from './components/BackupModal';
 import { Breadcrumbs } from './components/Breadcrumbs';
+import { AuthModal } from './components/AuthModal';
+import { UserProfileModal } from './components/UserProfileModal';
+import { CreatePlaylistModal } from './components/CreatePlaylistModal';
+import { SpotifySourceModal } from './components/SpotifySourceModal';
 import type { ViewMode, Track, CategoryFilter } from './types';
 
 const MainLayout: React.FC = () => {
@@ -54,6 +59,9 @@ const MainLayout: React.FC = () => {
   const [isShareOpen, setIsShareOpen] = useState<boolean>(false);
   const [shareTargetTrack, setShareTargetTrack] = useState<Track | null>(null);
   const [isBackupOpen, setIsBackupOpen] = useState<boolean>(false);
+  const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState<boolean>(false);
+  const [isSpotifySourceOpen, setIsSpotifySourceOpen] = useState<boolean>(false);
+  const [selectedSourceTrack, setSelectedSourceTrack] = useState<Track | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<Track[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
@@ -247,6 +255,7 @@ const MainLayout: React.FC = () => {
           onOpenContact={() => setIsContactOpen(true)}
           onOpenPrivacy={() => setIsPrivacyOpen(true)}
           onOpenBackup={() => setIsBackupOpen(true)}
+          onOpenCreatePlaylist={() => setIsCreatePlaylistOpen(true)}
         />
 
         {/* Dynamic Center Viewport */}
@@ -277,6 +286,10 @@ const MainLayout: React.FC = () => {
                 setShareTargetTrack(t);
                 setIsShareOpen(true);
               }}
+              onOpenSpotifySource={(t) => {
+                setSelectedSourceTrack(t);
+                setIsSpotifySourceOpen(true);
+              }}
             />
           )}
 
@@ -295,9 +308,23 @@ const MainLayout: React.FC = () => {
             />
           )}
 
-          {currentView === 'liked' && <PlaylistView isLikedView />}
+          {currentView === 'liked' && (
+            <PlaylistView
+              isLikedView
+              onOpenShare={(t) => {
+                setShareTargetTrack(t);
+                setIsShareOpen(true);
+              }}
+            />
+          )}
           {currentView === 'playlist' && (
-            <PlaylistView playlistId={selectedPlaylistId} />
+            <PlaylistView
+              playlistId={selectedPlaylistId}
+              onOpenShare={(t) => {
+                setShareTargetTrack(t);
+                setIsShareOpen(true);
+              }}
+            />
           )}
         </main>
       </div>
@@ -308,6 +335,10 @@ const MainLayout: React.FC = () => {
         onOpenShare={(track) => {
           setShareTargetTrack(track);
           setIsShareOpen(true);
+        }}
+        onOpenSpotifySource={(track) => {
+          setSelectedSourceTrack(track);
+          setIsSpotifySourceOpen(true);
         }}
       />
 
@@ -368,15 +399,43 @@ const MainLayout: React.FC = () => {
         isOpen={isBackupOpen}
         onClose={() => setIsBackupOpen(false)}
       />
+
+      {/* Authentication Modal (Sign In / Sign Up) */}
+      <AuthModal />
+
+      {/* User Profile & Account Stats Modal */}
+      <UserProfileModal
+        onOpenCreatePlaylist={() => setIsCreatePlaylistOpen(true)}
+        onOpenBackup={() => setIsBackupOpen(true)}
+      />
+
+      {/* Create Playlist Modal */}
+      <CreatePlaylistModal
+        isOpen={isCreatePlaylistOpen}
+        onClose={() => setIsCreatePlaylistOpen(false)}
+        onPlaylistCreated={(id) => {
+          setSelectedPlaylistId(id);
+          setCurrentView('playlist');
+        }}
+      />
+
+      {/* Spotify Multi-Source Engine & Track Intro Inspector */}
+      <SpotifySourceModal
+        isOpen={isSpotifySourceOpen}
+        onClose={() => setIsSpotifySourceOpen(false)}
+        track={selectedSourceTrack || currentTrack}
+      />
     </div>
   );
 };
 
 export const App: React.FC = () => {
   return (
-    <PlayerProvider>
-      <MainLayout />
-    </PlayerProvider>
+    <AuthProvider>
+      <PlayerProvider>
+        <MainLayout />
+      </PlayerProvider>
+    </AuthProvider>
   );
 };
 
