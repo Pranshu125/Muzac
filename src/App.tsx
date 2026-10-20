@@ -224,7 +224,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen text-gray-100 flex flex-col font-sans overflow-hidden bg-[#07080c]">
+    <div className="relative min-h-screen text-gray-100 flex flex-col font-sans overflow-hidden bg-[#06070f]">
       {/* Ambient Mesh */}
       <LiquidBackground
         primaryColor={primaryColor}

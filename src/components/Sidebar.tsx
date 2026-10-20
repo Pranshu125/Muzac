@@ -25,6 +25,7 @@ import {
 import type { ViewMode } from '../types';
 import { usePlayer } from '../context/PlayerContext';
 import { useAuth } from '../context/AuthContext';
+import { MuzacLogo } from './MuzacLogo';
 
 interface SidebarProps {
   currentView: ViewMode;
@@ -83,21 +84,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="hidden md:flex w-64 h-[calc(100vh-5.5rem)] clay-panel border-r border-white/10 flex-col justify-between p-4 select-none z-10 transition-all duration-300">
       <div className="space-y-6">
         {/* Brand Header */}
-        <div className="flex items-center gap-3 px-2 py-1">
-          <div className="relative w-10 h-10 rounded-2xl clay-card border border-white/20 flex items-center justify-center shadow-xl">
-            <AudioWaveform className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <span className="text-xl font-black tracking-tight text-white block">
-              Muzac
-            </span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-zinc-400">
-                Hi-Res Master
-              </span>
-            </div>
-          </div>
+        <div className="px-2 py-1">
+          <MuzacLogo size="md" showText={true} />
         </div>
 
         {/* Primary Discovery Navigation */}

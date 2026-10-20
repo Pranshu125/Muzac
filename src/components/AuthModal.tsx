@@ -15,6 +15,7 @@ import {
   Disc3
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { MuzacLogo } from './MuzacLogo';
 
 const AVATAR_OPTIONS = [
   { id: 'av1', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', label: 'Vocalist' },
@@ -106,9 +107,7 @@ export const AuthModal: React.FC = () => {
 
         {/* Modal Brand Header */}
         <div className="text-center pb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl clay-card border border-white/20 mb-3 shadow-xl">
-            <Disc3 className="w-6 h-6 text-white animate-spin" style={{ animationDuration: '6s' }} />
-          </div>
+          <MuzacLogo size="lg" glow={true} className="justify-center mb-3" />
           <h2 className="text-2xl font-black text-white tracking-tight m-0">
             {tab === 'login' ? 'Welcome Back to Muzac' : 'Join Muzac Master Hi-Fi'}
           </h2>

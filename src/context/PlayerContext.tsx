@@ -235,9 +235,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
   const [isLoadingLyrics, setIsLoadingLyrics] = useState<boolean>(false);
 
-  // Dynamic Monochrome Clay Theme Colors
-  const [primaryColor, setPrimaryColor] = useState<string>('rgba(255, 255, 255, 0.12)');
-  const [secondaryColor, setSecondaryColor] = useState<string>('rgba(140, 145, 165, 0.08)');
+  // Dynamic Sonic Iris & Electric Cyan Clay Theme Colors
+  const [primaryColor, setPrimaryColor] = useState<string>('rgba(139, 92, 246, 0.22)');
+  const [secondaryColor, setSecondaryColor] = useState<string>('rgba(6, 182, 212, 0.16)');
 
   // Equalizer & Audio processing
   const [eqBands, setEqBands] = useState<number[]>([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);

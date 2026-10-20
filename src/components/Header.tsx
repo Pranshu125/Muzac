@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { useAuth } from '../context/AuthContext';
+import { MuzacLogo } from './MuzacLogo';
 import type { CategoryFilter } from '../types';
 
 const TRENDING_SEARCHES = [
@@ -113,6 +114,15 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="h-16 clay-panel border-b border-white/10 px-3 md:px-6 flex items-center justify-between z-20 gap-2 md:gap-4 select-none relative">
       {/* Search Input & Category Filter Chips */}
       <div className="flex items-center gap-2 md:gap-4 flex-1 max-w-3xl">
+        {/* Mobile Mini Logo */}
+        <div 
+          onClick={() => setCurrentView('home')} 
+          className="md:hidden flex-shrink-0 cursor-pointer"
+          title="Return to Home"
+        >
+          <MuzacLogo size="xs" glow={false} />
+        </div>
+
         <div ref={searchContainerRef} className="relative flex-1 md:w-80 md:flex-initial max-w-full">
           <form onSubmit={e => {
             setIsSearchFocused(false);

@@ -5,8 +5,8 @@
   "start_url": "/",
   "id": "/",
   "display": "standalone",
-  "background_color": "#07080c",
-  "theme_color": "#07080c",
+  "background_color": "#06070f",
+  "theme_color": "#06070f",
   "orientation": "portrait",
   "categories": ["music", "entertainment", "audio"],
   "icons": [
